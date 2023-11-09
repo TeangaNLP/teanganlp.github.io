@@ -15,7 +15,7 @@
 
 	<!-- Latest boostrap and font awesome compiled and minified CSS -->
 	<link rel="stylesheet" href="./plugins/bootstrap/css/bootstrap.min.css">
-	<link rel="stylesheet" href="./plugins/font-awesome/css/font-awesome.min.css" type="text/css" >
+	<link rel="stylesheet" href="./plugins/fontawesome-free-6.4.2-web/css/all.min.css" type="text/css" >
 	
 	<!-- Custom CSS -->
     <link href="./css/style.css" rel="stylesheet">
@@ -39,25 +39,24 @@
 				<a class="navbar-brand" href="./">
 					<img src="./images/teanga-logo-white.svg" width="160" class="d-none d-lg-inline-block" alt="Teanga">
 					<img src="./images/teanga-logo-white.svg" width="160" class="d-lg-none" alt="Teanga">
-					<span class="beta">MVP</span>
+					<span class="beta">&nbsp;2.0&nbsp;</span>
 				</a>
 
 				<div class="collapse navbar-collapse align-items-center justify-content-end" id="navbar_main">
 					<ul class="navbar-nav">
-						<li><a href="./about" class="nav-link">About</a></li>
-						<li><a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Documentation</a>
+                                            <!--<li><a href="./about" class="nav-link">About</a></li>-->
+						<li><a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Modules</a>
 							<ul class="dropdown-menu">
 								<li class="dropdown">
-									<a href="./documents" class="dropdown-item" aria-haspopup="true" aria-expanded="false">Documents</a>
-									<a href="./publications" class="dropdown-item" aria-haspopup="true" aria-expanded="false">Publications</a>
+									<a href="https://github.com/teangaNLP/teanga2" class="dropdown-item" aria-haspopup="true" aria-expanded="false">Core</a>
 								</li>
 							</ul>
 						</li>
-						<li><a href="./contact" class="nav-link">Contact</a></li>
+                                                <!--<li><a href="./contact" class="nav-link">Contact</a></li>-->
 					</ul>
 				</div>
 
-				<a href="./platform" class="btn btn-primary btn-big-round">Test the Platform</a>
+                                <!--<a href="./platform" class="btn btn-primary btn-big-round">Test the Platform</a>-->
 
 			</div>
 		</nav>
@@ -70,28 +69,23 @@
 				<div class="row">
 					<div class="col-lg-5">
 						<h2 class="text-white">
-							Linked Data based platform for NLP
+							NLP Platform for Minority and Historical Languages
 						</h2>
 						<p class="text-silver" data-wow-delay="0.3s">
-							Use many NLP services from a single interface, whether that was a single service or multiple services in a pipeline.
+							Single interface and data model for NLP data and services, with a focus on minority and historical languages.
+                                                        Accessible through Python.
 						</p>
 
-						<a href="./about" class="btn btn-primary btn-big-round">
+						<a href="https://github.com/teangaNLP" class="btn btn-primary btn-big-round">
 							Learn more
-							<i class="fa fa-caret-right"></i>
+							<i class="fas fa-caret-right"></i>
 						</a>
 					</div>
 
 					<div class="col-md-6 col-lg-6 ml-md-auto">
 						<div class="block block-image-holder slide-img">
 							<div class="block-image">
-								<img src="./images/shots/1.png">
-
-								<a href="https://www.youtube.com/watch?v=sXPmWsB3v4En" data-fancybox="">
-									<span class="play-video">
-										<i class="fa fa-play"></i>
-									</span>
-								</a>
+                                                            <!--<img src="./images/shots/1.png">-->
 							</div>
 						</div>
 					</div>
@@ -110,68 +104,69 @@
 
 <div class="container-fluid">
 
-	<section class="features">
-		<div class="container">
-			<div class="row cols-xs-space cols-sm-space cols-md-space">
-				<div class="col-12 col-lg-3 wowimate zoomIn">
-					<div class="icon-block">
-						<div class="block-icon">
-							<i class="fa fa-hdd-o" aria-hidden="true"></i>
-						</div>
-						<div class="block-content">
-							<h3>Containerisation</h3>
-							<p>
-								Containerization using Docker for fast implementation.
-							</p>
-						</div>
-					</div>
-				</div>
+    <section class="features">
+        <div class="container">
+            <div class="row cols-xs-space cols-sm-space cols-md-space">
+                <div class="col-12 col-lg-3 wowimate zoomIn">
+                    <div class="icon-block">
+                        <div class="block-icon">
+                            <i class="fa-brands fa-python" aria-hidden="true"></i>
+                        </div>
+                        <div class="block-content">
+                            <h3>Python</h3>
+                            <p>
+                            Python tools accessible through a simple API.
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
-				<div class="col-12 col-lg-3 wowimate zoomIn" data-wow-delay="0.3s">
-					<div class="icon-block">
-						<div class="block-icon">
-							<i class="fa fa-play" aria-hidden="true"></i>
-						</div>
-						<div class="block-content">
-							<h3>Easy Installation</h3>
-							<p>
-								Using modern technologies with Docker to make it easy to install by third-party.
-							</p>
-						</div>
-					</div>
-				</div>
+                <div class="col-12 col-lg-3 wowimate zoomIn" data-wow-delay="0.3s">
+                    <div class="icon-block">
+                        <div class="block-icon">
+                            <i class="fas fa-brain" aria-hidden="true"></i>
+                        </div>
+                        <div class="block-content">
+                            <h3>Large Language Models</h3>
+                            <p>
+                            Powered by the latest large language models.
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
-				<div class="col-12 col-lg-3 wowimate zoomIn" data-wow-delay="0.6s">
-					<div class="icon-block">
-						<div class="block-icon">
-							<i class="fa fa-hand-o-up" aria-hidden="true"></i>
-						</div>
-						<div class="block-content">
-							<h3>Easy to use</h3>
-							<p>
-								Drag-and-drop workflow builder makes Teanga extremely easy to use.
-							</p>
-						</div>
-					</div>
-				</div>
+                <div class="col-12 col-lg-3 wowimate zoomIn" data-wow-delay="0.6s">
+                    <div class="icon-block">
+                        <div class="block-icon">
+                            <i class="fas fa-gear" aria-hidden="true"></i>
+                        </div>
+                        <div class="block-content">
+                            <h3>Flexible</h3>
+                            <p>
+                            Can be quickly extended to support new services and languages.
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
-				<div class="col-12 col-lg-3 wowimate zoomIn" data-wow-delay="0.9s">
-					<div class="icon-block">
-						<div class="block-icon">
-							<i class="fa fa-tasks" aria-hidden="true"></i>
-						</div>
-						<div class="block-content">
-							<h3>Pipelines</h3>
-							<p>
-								Building services' pipelines in seconds to perform complex NLP tasks.
-							</p>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
+                <div class="col-12 col-lg-3 wowimate zoomIn" data-wow-delay="0.9s">
+                    <div class="icon-block">
+                        <div class="block-icon">
+                            <i class="fas fa-tasks" aria-hidden="true"></i>
+                        </div>
+                        <div class="block-content">
+                            <h3>Simple</h3>
+                            <p>
+                            One library to access all services.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
+        <!--
 	<section class="screenshots">
 		<div class="container">
 			<div class="row align-items-md-center cols-xs-space cols-md-space cols-lg-space">
@@ -185,7 +180,7 @@
 						</p>
 						<a href="./about" class="btn btn-primary btn-big-round">
 							Learn more
-							<i class="fa fa-caret-right"></i>
+							<i class="fas fa-caret-right"></i>
 						</a>
 					</div>
 				</div>
@@ -209,7 +204,7 @@
 						</p>
 						<a href="./about" class="btn btn-primary btn-big-round">
 							Learn more
-							<i class="fa fa-caret-right"></i>
+							<i class="fas fa-caret-right"></i>
 						</a>
 					</div>
 				</div>
@@ -233,7 +228,7 @@
 						</p>
 						<a href="./about" class="btn btn-primary btn-big-round">
 							Learn more
-							<i class="fa fa-caret-right"></i>
+							<i class="fas fa-caret-right"></i>
 						</a>
 					</div>
 				</div>
@@ -307,8 +302,8 @@
 
 			</div>
 		</div>
-	</section>
-</div> <!-- /.container-fluid -->
+        </section>-->
+        </div> <!-- /.container-fluid -->
 
 
 	<footer>
@@ -325,13 +320,13 @@
 						<div class="col">
 							<a href="./"><img src="./images/teanga-logo-white.svg" width="160"></a>
 							<span class="clearfix"></span>
-							<span class="heading heading-sm c-gray-light strong-400">Linked Data based platform for Natural Language Processing</span>
+							<span class="heading heading-sm c-gray-light strong-400">A Natural Language Processing Platform</span>
 							<p class="">
-								Teanga focuses on the problem of NLP services interoperability by using linked data to define the types of services input and output.
+								Teanga focuses on the problem of NLP services interoperability for minority and historical languages.
 							</p>
 
 							<div class="copyright mt-4">
-								<p>© 2017<script>new Date().getFullYear()>2016&&document.write("-"+new Date().getFullYear());</script>, <a href="https://nuig.insight-centre.org/unlp/" data-toggle="tooltip" title="" data-original-title="The Unit of Natural Language Processing">UNLP</a>, <a href="http://insight-centre.org/" data-toggle="tooltip" title="" data-original-title="Data Science Institute">DSI</a>, <a href="http://nuigalway.ie" target="_blank" data-toggle="tooltip" title="" data-original-title="The National University of Ireland, Galway">NUI Galway.</a></p>
+                                                            <p>© 2017<script>new Date().getFullYear()>2016&&document.write("-"+new Date().getFullYear());</script>, <a href="http://www.universityofgalway.ie">University of Galway</a></p>
 							</div>
 						</div>
 					</div>
@@ -343,24 +338,10 @@
 							</h4>
 
 							<ul class="footer-links">
-								<li><a href="./about" title="Help center">About</a></li>
-								<li><a href="./documents" title="Discussions">Documentation</a></li>
+								<li><a href="https://github.com/teangaNLP" title="Help center">About</a></li>
+								<!--<li><a href="./documents" title="Discussions">Documentation</a></li>
 								<li><a href="./publications" title="Contact support">Publications</a></li>
-								<li><a href="./contact" title="Blog">Contact</a></li>
-							</ul>
-						</div>
-					</div>
-
-					<div class="col-lg-2 col-md-4 col-sm-4">
-						<div class="col">
-							<h4 class="heading heading-xs text-uppercase mb-1">
-								UNLP
-							</h4>
-
-							<ul class="footer-links">
-								<li><a href="https://nuig.insight-centre.org/unlp/" target="_blank">Webpage</a></li>
-								<li><a href="https://nuig.insight-centre.org/unlp/research/topics/" target="_blank">Research</a></li>
-								<li><a href="https://nuig.insight-centre.org/unlp/projects/current_projects/" target="_blank">Projects</a></li>
+                                                                <li><a href="./contact" title="Blog">Contact</a></li>-->
 							</ul>
 						</div>
 					</div>
@@ -373,18 +354,14 @@
 
 							<ul class="social-media">
 								<li>
-									<a href="#" class="github" target="_blank" data-toggle="tooltip" data-original-title="Github">
-										<i class="fa fa-github"></i>
+									<a href="https://github.com/teangaNLP" class="github" target="_blank" data-toggle="tooltip" data-original-title="Github">
+										<i class="fa-brands fa-github"></i>
 									</a>
 								</li>
 								<li>
-									<a href="https://twitter.com/unlp_nuig" class="twitter" target="_blank" data-toggle="tooltip" data-original-title="Twitter">
-										<i class="fa fa-twitter"></i>
-									</a>
-								</li>
 								<li>
-									<a href="./contact" class="envelope" target="_blank" data-toggle="tooltip" data-original-title="Email">
-										<i class="fa fa-envelope"></i>
+									<a href="mailto:john.mccrae@universityofgalway.ie" class="envelope" target="_blank" data-toggle="tooltip" data-original-title="Email">
+										<i class="fas fa-envelope"></i>
 									</a>
 								</li>
 							</ul>
@@ -400,20 +377,16 @@
 			<div class="col-md-12">
 				<ul class="partnerships clearfix">
 					<li><a href="http://www.insight-centre.org/"><img id="insight_logo" alt="INSIGHT" src="./images/insight-logo.png"></a></li>
-					<li><a href="http://www.nuigalway.ie/"><img id="nui_logo" alt="NUI Galway" src="./images/nuigalway-logo.png"></a></li>
+					<li><a href="http://www.universityofgalway.ie/"><img id="nui_logo" alt="University of Galway" src="./images/nuigalway-logo.svg" width="300"></a></li>
 					<li><a href="http://www.sfi.ie/"><img id="sfi_logo" alt="SFI" src="./images/sfi-logo.jpg"></a></li>
 				</ul>
-
-				<p>This resource has been funded by Science Foundation
-					Ireland under Grant No. SFI/08/CE/I1380 (Lion-2) and by Grant No. SFI/12/RC/2289 (INSIGHT)<br>
-					INSIGHT - National University of Ireland, Galway</p>
 			</div>
 		</div>
 	</div>
 
 	<!-- Scroll to Top Button-->
 	<a class="scroll-to-top btn btn-primary" href="#page-top">
-		<i class="fa fa-angle-up"></i>
+		<i class="fas fa-angle-up"></i>
 	</a>
 
 	<!-- jQuery plugin JavaScript-->
