@@ -1,0 +1,23 @@
+_meta:
+    text:
+        type: characters
+    tokens:
+        type: span
+        base: text
+    upos:
+        type: seq
+        base: tokens
+        data: ["ADJ", ... "X"]
+    document:
+        type: div
+        base: text
+        default: [[0]]
+    author:
+        type: element
+        base: document
+        data: string
+VC90:
+    text: "Teanga2 data model"
+    tokens: [[0,7], [8,12], [13,18]]
+    upos: ["PROPN", "NOUN", "NOUN"]
+    author: [[0, "John P. McCrae"], [0, "Somebody Else"]]
