@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "ref-corpora"
+version = "0.1.0"
+description = ""
+authors = ["John P. McCrae <john@mccr.ae>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+nltk = "^3.8.1"
+teanga = {path = "../../teanga2"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

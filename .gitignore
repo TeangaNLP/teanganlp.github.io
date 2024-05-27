@@ -1,2 +1,6 @@
 
 get.sh
+ref_corpora/poetry.lock
+ref_corpora/README.md
+ref_corpora/tests
+ref_corpora/ref_corpora
