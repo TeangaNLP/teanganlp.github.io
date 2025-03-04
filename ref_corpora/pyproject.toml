@@ -8,7 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 nltk = "^3.8.1"
-teanga = {path = "../../teanga2"}
+teanga = {path = "../../teanga2", develop = true}
 
 
 [build-system]

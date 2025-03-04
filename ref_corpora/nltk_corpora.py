@@ -3,9 +3,15 @@ import teanga
 from nltk.tokenize.treebank import TreebankWordDetokenizer
 import re
 import json
+import sys
 
 # Download the NLTK data
 #nltk.download('all')
+
+datasets = ["sinice_treebank"]
+
+def dataset(s):
+    return not datasets or s in datasets
 
 detokenizer = TreebankWordDetokenizer()
 detokenizer.ENDING_QUOTES = [
@@ -19,7 +25,7 @@ detokenizer.ENDING_QUOTES = [
         (re.compile(r"''"), '"'),
     ]
 
-def find_spans(text, tokens, offset=0):
+def find_spans(text, tokens, offset=0, skip_errors=False):
     spans = []
     start = 0
     last_start = 0
@@ -40,8 +46,17 @@ def find_spans(text, tokens, offset=0):
         last_start = start
         start = text.find(token, start)
         if start == -1:
-            raise ValueError("Token not found in text: " + token + 
-                             " in " + text[last_start:last_start+50])
+            if skip_errors:
+                # Print to STDERR
+                print("Token not found in text: " + token + 
+                      " in " + text[last_start:last_start+50],
+                      file=sys.stderr)
+                end = last_start + len(token)
+                spans.append((last_start + offset, end + offset))
+                start = end
+            else:
+                raise ValueError("Token not found in text: " + token + 
+                                 " in " + text[last_start:last_start+50])
         end = start + len(token)
         spans.append((start + offset, end + offset))
         start = end
@@ -54,10 +69,10 @@ def convert_plain_text(corpus_name):
     nltk_corpus = eval("nltk.corpus." + corpus_name)
     for fileid in nltk_corpus.fileids():
         text = nltk_corpus.raw(fileid)
-        doc = corpus.add_doc(text=text)
-        doc.fileid = fileid
+        doc = corpus.add_doc(text=text, fileid=fileid)
     with open("../corpora/" + corpus_name + ".yaml", "w") as f:
         corpus.to_yaml(f)
+
 
 def convert_tagged_corpus(corpus_name):
     corpus = teanga.Corpus()
@@ -89,8 +104,7 @@ def convert_tagged_corpus(corpus_name):
                 detokenizer.detokenize(sent) 
                 for sent in para) 
                 for para in nltk_corpus.paras(fileid))
-            doc = corpus.add_doc(text=text)
-            doc.fileid = fileid
+            doc = corpus.add_doc(text=text, fileid=fileid)
             offset = 0
             sents = []
             paras = []
@@ -109,8 +123,7 @@ def convert_tagged_corpus(corpus_name):
         elif sentences:
             text = " ".join(detokenizer.detokenize(sent)
                             for sent in nltk_corpus.sents(fileid))
-            doc = corpus.add_doc(text=text)
-            doc.fileid = fileid
+            doc = corpus.add_doc(text=text, fileid=fileid)
             offset = 0
             sents = []
             word_idxs = []
@@ -124,11 +137,15 @@ def convert_tagged_corpus(corpus_name):
         else:
             words = nltk_corpus.words(fileid)
             text = detokenizer.detokenize(words)
-            doc = corpus.add_doc(text=text)
-            doc.fileid = [fileid]
+            doc = corpus.add_doc(text=text, fileid=fileid)
             doc.words = find_spans(text, words)
 
-        doc.tags = [tag for (word, tag) in nltk_corpus.tagged_words(fileid)]
+        def clean_tag(t):
+            if t is None:
+                return "None"
+            else:
+                return t
+        doc.tags = [clean_tag(tag) for (word, tag) in nltk_corpus.tagged_words(fileid)]
     with open("../corpora/" + corpus_name + ".yaml", "w") as f:
         corpus.to_yaml(f)
 
@@ -192,8 +209,7 @@ def convert_tree_corpus(corpus_name, simple_detokenize=False):
                     detokenizer.detokenize(sent) 
                     for sent in para) 
                     for para in nltk_corpus.paras(fileid))
-            doc = corpus.add_doc(text=text)
-            doc.fileid = fileid
+            doc = corpus.add_doc(text=text, fileid=fileid)
             offset = 0
             sents = []
             paras = []
@@ -226,8 +242,7 @@ def convert_tree_corpus(corpus_name, simple_detokenize=False):
             else:
                 text = " ".join(detokenizer.detokenize(sent)
                                 for sent in nltk_corpus.sents(fileid))
-            doc = corpus.add_doc(text=text)
-            doc.fileid = fileid
+            doc = corpus.add_doc(text=text, fileid=fileid)
             offset = 0
             sents = []
             word_idxs = []
@@ -236,7 +251,7 @@ def convert_tree_corpus(corpus_name, simple_detokenize=False):
             for sent in nltk_corpus.parsed_sents(fileid):
                 sents.append(len(word_idxs))
                 w, n, c = convert_one_tree(sent, len(nodes), len(nodes), len(word_idxs))
-                word_idxs.extend(find_spans(text[offset:], w, offset))
+                word_idxs.extend(find_spans(text[offset:], w, offset, skip_errors=True))
                 nodes.extend(n)
                 constituents.extend(c)
                 if simple_detokenize:
@@ -254,14 +269,20 @@ def convert_tree_corpus(corpus_name, simple_detokenize=False):
     with open("../corpora/" + corpus_name + ".yaml", "w") as f:
         corpus.to_yaml(f)
 
-convert_plain_text("abc")
+if dataset("abc"):
+    convert_plain_text("abc")
 
-convert_tagged_corpus("alpino")
+if dataset("alpino"):
+    convert_tagged_corpus("alpino")
 
-convert_tagged_corpus("brown")
+if dataset("brown"):
+    convert_tagged_corpus("brown")
 
-convert_tree_corpus("cess_cat")
-convert_tree_corpus("cess_esp")
+if dataset("cess_cat"):
+    convert_tree_corpus("cess_cat")
+
+if dataset("cess_esp"):
+    convert_tree_corpus("cess_esp")
 
 def convert_comparative_sentences(corpus_name):
     corpus = teanga.Corpus()
@@ -275,22 +296,24 @@ def convert_comparative_sentences(corpus_name):
     corpus.add_layer_meta("keyword")
     for comparison in nltk_corpus.comparisons():
         text = detokenizer.detokenize(comparison.text)
-        doc = corpus.add_doc(text=text)
-        doc.words = find_spans(text, comparison.text)
+        fields = {"text": text}
         if comparison.comp_type:
-            doc.comp_type = comparison.comp_type
+            fields["comp_type"] = str(comparison.comp_type)
         if comparison.entity_1:
-            doc.entity_1 = comparison.entity_1
+            fields["entity_1"] = str(comparison.entity_1)
         if comparison.entity_2:
-            doc.entity_2 = comparison.entity_2
+            fields["entity_2"] = str(comparison.entity_2)
         if comparison.feature:
-            doc.feature = comparison.feature
+            fields["feature"] = str(comparison.feature)
         if comparison.keyword:
-            doc.keyword = comparison.keyword
+            fields["keyword"] = str(comparison.keyword)
+        doc = corpus.add_doc(**fields)
+        doc.words = find_spans(text, comparison.text)
     with open("../corpora/" + corpus_name + ".yaml", "w") as f:
         corpus.to_yaml(f)
  
-convert_comparative_sentences("comparative_sentences")    
+if dataset("comparative_sentences"):
+    convert_comparative_sentences("comparative_sentences")    
 
 def convert_aligned_corpus(corpus_name):
     corpus = teanga.Corpus()
@@ -306,25 +329,30 @@ def convert_aligned_corpus(corpus_name):
         for sentence in nltk_corpus.aligned_sents(fileid):
             text1 = detokenizer.detokenize(sentence.words)
             text2 = detokenizer.detokenize(sentence.mots)
-            doc = corpus.add_doc(text1=text1, text2=text2)
+            doc = corpus.add_doc(text1=text1, text2=text2, fileid=fileid)
             doc.words1 = find_spans(text1, sentence.words)
             doc.words2 = find_spans(text2, sentence.mots)
             doc.alignment = [(i, j) for i, j in sentence.alignment]
-            doc.fileid = fileid
     with open("../corpora/" + corpus_name + ".yaml", "w") as f:
         corpus.to_yaml(f)
  
-convert_aligned_corpus("comtrans")
+if dataset("comtrans"):
+    convert_aligned_corpus("comtrans")
 
-convert_tagged_corpus("conll2000")
+if dataset("conll2000"):
+    convert_tagged_corpus("conll2000")
 
-convert_tagged_corpus("conll2002")
+if dataset("conll2002"):
+    convert_tagged_corpus("conll2002")
 
-convert_tagged_corpus("floresta")
+if dataset("floresta"):
+    convert_tagged_corpus("floresta")
 
-convert_plain_text("genesis")
+if dataset("genesis"):
+    convert_plain_text("genesis")
 
-convert_plain_text("gutenberg")
+if dataset("gutenberg"):
+    convert_plain_text("gutenberg")
 
 def convert_ieer_corpus(corpus_name):
     corpus = teanga.Corpus()
@@ -355,21 +383,30 @@ def convert_ieer_corpus(corpus_name):
     with open("../corpora/" + corpus_name + ".yaml", "w") as f:
         corpus.to_yaml(f)
 
-convert_ieer_corpus("ieer")
+if dataset("ieer"):
+    convert_ieer_corpus("ieer")
 
-convert_plain_text("inaugural")
+if dataset("inaugural"):
+    convert_plain_text("inaugural")
 
-convert_tagged_corpus("indian")
+if dataset("indian"):
+    convert_tagged_corpus("indian")
 
-convert_plain_text("machado")
+# NTLK bug #3373
+#if dataset("machado"):
+#    convert_plain_text("machado")
 
-convert_tagged_corpus("mac_morpho")
+if dataset("mac_morpho"):
+    convert_tagged_corpus("mac_morpho")
 
-convert_tagged_corpus("masc_tagged")
+if dataset("masc_tagged"):
+    convert_tagged_corpus("masc_tagged")
 
-convert_plain_text("movie_reviews")
+if dataset("movie_reviews"):
+    convert_plain_text("movie_reviews")
 
-convert_tagged_corpus("nps_chat")
+if dataset("nps_chat"):
+    convert_tagged_corpus("nps_chat")
 
 def convert_review_corpus(corpus_name):
     corpus = teanga.Corpus()
@@ -397,8 +434,7 @@ def convert_review_corpus(corpus_name):
             features.extend([(sent_no, f"{f[0]}={f[1]}") for f in review_line.features])
             notes.extend([(sent_no, note) for note in review_line.notes])
             sent_no += 1
-        doc = corpus.add_doc(text=text)
-        doc.title = review.title
+        doc = corpus.add_doc(text=text, title=review.title)
         doc.words = words
         doc.sentences = sentences
         doc.features = features
@@ -406,10 +442,14 @@ def convert_review_corpus(corpus_name):
     with open("../corpora/" + corpus_name + ".yaml", "w") as f:
         corpus.to_yaml(f)
 
-convert_review_corpus("product_reviews_1")
-convert_review_corpus("product_reviews_2")
+if dataset("product_reviews_1"):
+    convert_review_corpus("product_reviews_1")
 
-convert_plain_text("pros_cons")
+if dataset("product_reviews_2"):
+    convert_review_corpus("product_reviews_2")
+
+if dataset("pros_cons"):
+    convert_plain_text("pros_cons")
 
 def convert_string_category_corpus(corpus_name):
     corpus = teanga.Corpus()
@@ -419,13 +459,12 @@ def convert_string_category_corpus(corpus_name):
     corpus.add_layer_meta("fileid")
     for fileid in nltk_corpus.fileids():
         for label, text in nltk_corpus.tuples(fileid):
-            doc = corpus.add_doc(text=text)
-            doc.category = label
-            doc.fileid = fileid
+            doc = corpus.add_doc(text=text, fileid=fileid, category=label)
     with open("../corpora/" + corpus_name + ".yaml", "w") as f:
         corpus.to_yaml(f)
 
-convert_string_category_corpus("qc")
+if dataset("qc"):
+    convert_string_category_corpus("qc")
 
 def convert_rte_corpus(corpus_name):
     corpus = teanga.Corpus()
@@ -434,21 +473,19 @@ def convert_rte_corpus(corpus_name):
     corpus.add_layer_meta("hyp")
     corpus.add_layer_meta("fileid")
     corpus.add_layer_meta("challenge")
-    corpus.add_layer_meta("id")
+    corpus.add_layer_meta("docid")
     corpus.add_layer_meta("value")
     corpus.add_layer_meta("task")
     for fileid in nltk_corpus.fileids():
         for pair in nltk_corpus.pairs(fileid):
-            doc = corpus.add_doc(text=pair.text, hyp=pair.hyp)
-            doc.fileid = fileid
-            doc.challenge = pair.challenge
-            doc.id = pair.id
-            doc.value = str(pair.value)
-            doc.task = pair.task
+            doc = corpus.add_doc(text=pair.text, hyp=pair.hyp, fileid=fileid,
+                                 challenge=pair.challenge, docid=pair.id,
+                                 value=str(pair.value), task=pair.task)
     with open("../corpora/" + corpus_name + ".yaml", "w") as f:
         corpus.to_yaml(f)
 
-convert_rte_corpus("rte")
+if dataset("rte"):
+    convert_rte_corpus("rte")
 
 def convert_senseval():
     corpus = teanga.Corpus()
@@ -478,26 +515,31 @@ def convert_senseval():
                 words.append(w)
                 tags.append("")
         text = detokenizer.detokenize(words)
-        doc = corpus.add_doc(text=text)
+        doc = corpus.add_doc(text=text, word=instance.word,
+                             senseid=instance.senses[0])
         doc.words = find_spans(text, words)
         doc.tags = tags
-        doc.word = instance.word
-        doc.senseid = [instance.senses[0]]
-        doc.head = [(instance.position,)]
+        doc.head = [instance.position]
     with open("../corpora/senseval.yaml", "w") as f:
         corpus.to_yaml(f)
 
-convert_senseval()
+if dataset("senseval"):
+    convert_senseval()
 
-convert_plain_text("sentence_polarity")
-convert_plain_text("shakespeare")
+if dataset("sentence_polarity"):
+    convert_plain_text("sentence_polarity")
+
+if dataset("shakespeare"):
+    convert_plain_text("shakespeare")
 
 # NLTK bugs?
-#convert_tree_corpus("sinica_treebank", simple_detokenize=True)
+convert_tree_corpus("sinica_treebank", simple_detokenize=True)
 
-convert_plain_text("state_union")
+if dataset("state_union"):
+    convert_plain_text("state_union")
 
-convert_plain_text("subjectivity")
+if dataset("subjectivity"):
+    convert_plain_text("subjectivity")
 
 def convert_switchboard():
     corpus = teanga.Corpus()
@@ -516,29 +558,29 @@ def convert_switchboard():
                                 '^PRP^VBP', '^RB', '^VB', '^VBD', '^VBG', 
                                 '^VBN', '^VBP', '^VB^RP', '^WP^BES'])
     corpus.add_layer_meta("speaker")
-    corpus.add_layer_meta("id")
+    corpus.add_layer_meta("docid")
     for turn in nltk_corpus.tagged_turns():
         words = [t[0] for t in turn]
         tags = [t[1] for t in turn]
         text = detokenizer.detokenize(words)
-        doc = corpus.add_doc(text=text)
+        doc = corpus.add_doc(text=text, speaker=turn.speaker, docid=str(turn.id))
         doc.words = find_spans(text, words)
         doc.tags = tags
-        doc.speaker = turn.speaker
-        doc["id"] = str(turn.id)
     with open("../corpora/switchboard.yaml", "w") as f:
         corpus.to_yaml(f)
 
-convert_switchboard()
+if dataset("switchboard"):
+    convert_switchboard()
 
-convert_tree_corpus("treebank")
+if dataset("treebank"):
+    convert_tree_corpus("treebank")
 
 def convert_twitter_corpus():
     corpus = teanga.Corpus()
     twitter_corpus = nltk.corpus.twitter_samples
     for key in ['contributors', 'coordinates', 'created_at', 'entities', 
                 'extended_entities', 'favorite_count', 'favorited',
-                'filter_level', 'geo', 'id', 'id_str',
+                'filter_level', 'geo', 'docid', 'id_str',
                 'in_reply_to_screen_name', 'in_reply_to_status_id',
                 'in_reply_to_status_id_str', 'in_reply_to_user_id',
                 'in_reply_to_user_id_str', 'is_quote_status', 'lang', 
@@ -550,21 +592,32 @@ def convert_twitter_corpus():
     corpus.add_layer_meta("fileid")
     for fileid in twitter_corpus.fileids():
         for tweet in twitter_corpus.docs(fileid):
-            doc = corpus.add_doc(text=tweet["text"])
+            fields = {"text": tweet["text"], "fileid": str(fileid) }
             for key in tweet:
                 if tweet[key] is None:
                     pass
                 elif isinstance(tweet[key], str):
-                    doc[key] = [tweet[key]]
+                    if key == "id":
+                        fields["docid"] = str(tweet[key])
+                    else:
+                        fields[key] = str(tweet[key])
                 else:
-                    doc[key] = json.dumps(tweet[key])
-            doc.fileid = fileid
+                    if key == "id":
+                        fields["docid"] = str(tweet[key])
+                    else:
+                        fields[key] = str(json.dumps(tweet[key]))
+            doc = corpus.add_doc(**fields)
     with open("../corpora/twitter_samples.yaml", "w") as f:
         corpus.to_yaml(f)
 
-convert_twitter_corpus()
+if dataset("twitter_samples"):
+    convert_twitter_corpus()
 
-convert_plain_text("udhr")
-convert_plain_text("udhr2")
+if dataset("udhr"):
+    convert_plain_text("udhr")
 
-convert_plain_text("webtext")
+if dataset("udhr2"):
+    convert_plain_text("udhr2")
+
+if dataset("webtext"):
+    convert_plain_text("webtext")
