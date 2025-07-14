@@ -8,7 +8,8 @@ import sys
 # Download the NLTK data
 #nltk.download('all')
 
-datasets = ["sinice_treebank"]
+datasets = []
+#datasets = ["twitter_samples"]
 
 def dataset(s):
     return not datasets or s in datasets
@@ -62,14 +63,104 @@ def find_spans(text, tokens, offset=0, skip_errors=False):
         start = end
     return spans
 
+def process_doc_para_sent_words(corpus, fileid, nltk_corpus, 
+                                paragraphs=False, sentences=False, words=True):
+    """
+    Process a document from an NLTK corpus, extracting paragraphs, sentences,
+    and words as specified, and adding them to the corpus.
+    
+    Args:
+        corpus (teanga.Corpus): The corpus to which the document will be added.
+        fileid (str): The file identifier for the document.
+        nltk_corpus (nltk.corpus): The NLTK corpus from which to extract the document.
+        paragraphs (bool): Whether to extract paragraphs.
+        sentences (bool): Whether to extract sentences.
+        words (bool): Whether to extract words.
+
+    Returns:
+        teanga.Document: The document added to the corpus with the specified layers.
+    """
+    if paragraphs:
+        text = "\n\n".join(" ".join(
+            detokenizer.detokenize(sent) 
+            for sent in para) 
+            for para in nltk_corpus.paras(fileid))
+        doc = corpus.add_doc(text=text, fileid=fileid)
+        offset = 0
+        sents = []
+        paras = []
+        word_idxs = []
+        for para in nltk_corpus.paras(fileid):
+            paras.append(len(sents))
+            for sent in para:
+                sents.append(len(word_idxs))
+                word_idxs.extend(find_spans(text[offset:], sent, offset))
+                offset += len(detokenizer.detokenize(sent))
+                offset += 1
+            offset += 1
+        doc.words = word_idxs
+        doc.sentences = sents
+        doc.paragraphs = paras
+    elif sentences:
+        text = " ".join(detokenizer.detokenize(sent)
+                        for sent in nltk_corpus.sents(fileid))
+        doc = corpus.add_doc(text=text, fileid=fileid)
+        offset = 0
+        sents = []
+        word_idxs = []
+        for sent in nltk_corpus.sents(fileid):
+            sents.append(len(word_idxs))
+            word_idxs.extend(find_spans(text[offset:], sent, offset))
+            offset += len(detokenizer.detokenize(sent))
+            offset += 1
+        doc.words = word_idxs
+        doc.sentences = sents
+    elif words:
+        words = nltk_corpus.words(fileid)
+        text = detokenizer.detokenize(words)
+        doc = corpus.add_doc(text=text, fileid=fileid)
+        doc.words = find_spans(text, words)
+    else:
+        text = nltk_corpus.raw(fileid)
+        doc = corpus.add_doc(text=text, fileid=fileid)
+    return doc
+
+
 def convert_plain_text(corpus_name):
     corpus = teanga.Corpus()
     corpus.add_layer_meta("text")
     corpus.add_layer_meta("fileid")
     nltk_corpus = eval("nltk.corpus." + corpus_name)
+
+    words = False
+    try:
+        nltk_corpus.words()
+        corpus.add_layer_meta("words", layer_type="span", base="text")
+        words = True
+    except Exception:
+        pass
+
+    sentences = False
+    try:
+        nltk_corpus.sents()
+        corpus.add_layer_meta("sentences", layer_type="div", base="words")
+        sentences = True
+    except Exception:
+        pass
+
+    paragraphs = False
+    try:
+        nltk_corpus.paras()
+        corpus.add_layer_meta("paragraphs", layer_type="div", base="sentences")
+        paragraphs = True
+    except Exception:
+        pass
+
     for fileid in nltk_corpus.fileids():
-        text = nltk_corpus.raw(fileid)
-        doc = corpus.add_doc(text=text, fileid=fileid)
+        process_doc_para_sent_words(corpus, fileid, nltk_corpus,
+                                    paragraphs=paragraphs,
+                                    sentences=sentences,
+                                    words=words)
     with open("../corpora/" + corpus_name + ".yaml", "w") as f:
         corpus.to_yaml(f)
 
@@ -99,47 +190,9 @@ def convert_tagged_corpus(corpus_name):
     except Exception:
         pass
     for fileid in nltk_corpus.fileids():
-        if paragraphs:
-            text = "\n\n".join(" ".join(
-                detokenizer.detokenize(sent) 
-                for sent in para) 
-                for para in nltk_corpus.paras(fileid))
-            doc = corpus.add_doc(text=text, fileid=fileid)
-            offset = 0
-            sents = []
-            paras = []
-            word_idxs = []
-            for para in nltk_corpus.paras(fileid):
-                paras.append(len(sents))
-                for sent in para:
-                    sents.append(len(word_idxs))
-                    word_idxs.extend(find_spans(text[offset:], sent, offset))
-                    offset += len(detokenizer.detokenize(sent))
-                    offset += 1
-                offset += 1
-            doc.words = word_idxs
-            doc.sentences = sents
-            doc.paragraphs = paras
-        elif sentences:
-            text = " ".join(detokenizer.detokenize(sent)
-                            for sent in nltk_corpus.sents(fileid))
-            doc = corpus.add_doc(text=text, fileid=fileid)
-            offset = 0
-            sents = []
-            word_idxs = []
-            for sent in nltk_corpus.sents(fileid):
-                sents.append(len(word_idxs))
-                word_idxs.extend(find_spans(text[offset:], sent, offset))
-                offset += len(detokenizer.detokenize(sent))
-                offset += 1
-            doc.words = word_idxs
-            doc.sentences = sents
-        else:
-            words = nltk_corpus.words(fileid)
-            text = detokenizer.detokenize(words)
-            doc = corpus.add_doc(text=text, fileid=fileid)
-            doc.words = find_spans(text, words)
-
+        doc = process_doc_para_sent_words(corpus, fileid, nltk_corpus,
+                                    paragraphs=paragraphs,
+                                    sentences=sentences)
         def clean_tag(t):
             if t is None:
                 return "None"
@@ -578,43 +631,27 @@ if dataset("treebank"):
 def convert_twitter_corpus():
     corpus = teanga.Corpus()
     twitter_corpus = nltk.corpus.twitter_samples
-    for key in ['contributors', 'coordinates', 'created_at', 'entities', 
-                'extended_entities', 'favorite_count', 'favorited',
-                'filter_level', 'geo', 'docid', 'id_str',
-                'in_reply_to_screen_name', 'in_reply_to_status_id',
-                'in_reply_to_status_id_str', 'in_reply_to_user_id',
-                'in_reply_to_user_id_str', 'is_quote_status', 'lang', 
-                'metadata', 'place', 'possibly_sensitive', 'quoted_status',
-                'quoted_status_id', 'quoted_status_id_str', 'retweet_count',
-                'retweeted', 'retweeted_status', 'source', 'text', 
-                'timestamp_ms', 'truncated', 'user']:
-        corpus.add_layer_meta(key)
-    corpus.add_layer_meta("fileid")
+    corpus.add_layer_meta("text")
     for fileid in twitter_corpus.fileids():
         for tweet in twitter_corpus.docs(fileid):
-            fields = {"text": tweet["text"], "fileid": str(fileid) }
+            doc = corpus.add_doc(text=tweet["text"])
             for key in tweet:
                 if tweet[key] is None:
                     pass
                 elif isinstance(tweet[key], str):
-                    if key == "id":
-                        fields["docid"] = str(tweet[key])
-                    else:
-                        fields[key] = str(tweet[key])
+                    if key != "text":
+                        doc["_" + key] = str(tweet[key])
                 else:
-                    if key == "id":
-                        fields["docid"] = str(tweet[key])
-                    else:
-                        fields[key] = str(json.dumps(tweet[key]))
-            doc = corpus.add_doc(**fields)
+                    if key != "text":
+                        doc["_" + key] = str(json.dumps(tweet[key]))
     with open("../corpora/twitter_samples.yaml", "w") as f:
         corpus.to_yaml(f)
 
 if dataset("twitter_samples"):
     convert_twitter_corpus()
 
-if dataset("udhr"):
-    convert_plain_text("udhr")
+#if dataset("udhr"):
+#    convert_plain_text("udhr")
 
 if dataset("udhr2"):
     convert_plain_text("udhr2")
